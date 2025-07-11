@@ -72,6 +72,10 @@ class Transcript:
     def summary(self):
         return self.source.summary
 
+    @summary.setter
+    def summary(self, value):
+        self.source.summary = value
+
     def __str__(self):
         excluded_fields = ['test_mode', 'logger']
         fields = {key: value for key, value in self.__dict__.items()
@@ -348,16 +352,18 @@ class Video(Source):
             try:
                 self.logger.debug(f"Downloading video: {self.source_file}")
                 ydl_opts = {
-                    "format": 'worstvideo[ext=mp4]+worstaudio[ext=m4a]/worst[ext=mp4]/worst',
+                    "format": 'worstvideo+worstaudio/worst',
                     "outtmpl": os.path.join(working_dir, "videoFile.%(ext)s"),
                     "nopart": True,
                 }
                 with yt_dlp.YoutubeDL(ydl_opts) as ytdl:
                     ytdl.download([self.source_file])
 
-                output_file = os.path.join(working_dir, "videoFile.mp4")
-                if not os.path.exists(output_file):
-                    raise Exception(f"Downloaded file not found: {output_file}")
+                for ext in ["mp4", "mkv", "webm"]:
+                    output_file = os.path.join(working_dir, f"videoFile.{ext}")
+                    if os.path.exists(output_file):
+                        return os.path.abspath(output_file)
+                raise Exception("Downloaded file not found in expected formats.")
 
                 return os.path.abspath(output_file)
             except Exception as e:
