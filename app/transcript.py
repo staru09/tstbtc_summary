@@ -343,41 +343,22 @@ class Video(Source):
 
     def process(self, working_dir):
         """Process video"""
-
-        def download_video():
-            """Helper method to download a YouTube video and return its absolute path"""
-            # sanity checks
-            if self.local:
-                raise Exception(f"{self.source_file} is a local file")
-            try:
-                self.logger.debug(f"Downloading video: {self.source_file}")
-                ydl_opts = {
-                    "format": 'worstvideo+worstaudio/worst',
-                    "outtmpl": os.path.join(working_dir, "videoFile.%(ext)s"),
-                    "nopart": True,
-                }
-                with yt_dlp.YoutubeDL(ydl_opts) as ytdl:
-                    ytdl.download([self.source_file])
-
-                for ext in ["mp4", "mkv", "webm"]:
-                    output_file = os.path.join(working_dir, f"videoFile.{ext}")
-                    if os.path.exists(output_file):
-                        return os.path.abspath(output_file)
-                raise Exception("Downloaded file not found in expected formats.")
-
-                return os.path.abspath(output_file)
-            except Exception as e:
-                self.logger.error(e)
-                raise Exception(f"Error downloading video: {e}")
-
         try:
             self.logger.debug(f"Video processing: '{self.source_file}'")
+            media_processor = MediaProcessor()
             if not self.local:
-                video_file_path = download_video()
+                video_file_path = media_processor.download_youtube_video(
+                    youtube_url=self.source_file,
+                    output_dir=working_dir,
+                    # Attempt to get the worst quality mp4 video and the best quality m4a audio, and combine them.
+                    # If that's not possible, it will try to get the worst quality video and the best quality audio of any format and combine them.
+                    # If that also fails, it will just grab the worst quality version of the video it can find, in any format.
+                    format_selector='worstvideo[ext=mp4]+bestaudio[ext=m4a]/worstvideo+bestaudio/worst',
+                    filename_template='videoFile.%(ext)s'
+                )
             else:
                 video_file_path = os.path.abspath(self.source_file)
 
-            media_processor = MediaProcessor()
             audio_file = media_processor.convert_to_mp3(
                 video_file_path, working_dir)
             return audio_file

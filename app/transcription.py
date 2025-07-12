@@ -92,7 +92,7 @@ class Transcription:
         self.transcripts: list[Transcript] = []
         self.existing_media = None
         self.preprocessing_output = [] if batch_preprocessing_output else None
-        self.data_fetcher = DataFetcher(base_url="http://btctranscripts.com")
+        self.data_fetcher = DataFetcher(settings.BTC_TRANSCRIPTS_URL)
 
         self.correct = correct
         self.summarize_llm = summarize_llm
@@ -179,7 +179,7 @@ class Transcription:
                 raise Exception(f"Invalid source: {e}")
 
         try:
-            if source.source_file.endswith((".mp3", ".wav", ".m4a", ".aac")):
+            if source.source_file.lower().endswith((".mp3", ".wav", ".m4a", ".aac")):
                 return Audio(source=source, chapters=chapters)
             if source.source_file.endswith(("rss", ".xml")):
                 return RSS(source=source)
@@ -192,7 +192,7 @@ class Transcription:
                     youtube_metadata=youtube_metadata,
                     chapters=chapters,
                 )
-            if source.source_file.endswith((".mp4", ".webm")):
+            if source.source_file.lower().endswith((".mp4", ".webm", ".mov")):
                 # regular remote video, not youtube
                 source.preprocess = False
                 return Video(source=source)

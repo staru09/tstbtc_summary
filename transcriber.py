@@ -131,6 +131,13 @@ cutoff_date = click.option(
         "specific date range."
     ),
 )
+nocheck = click.option(
+    "--nocheck",
+    is_flag=True,
+    default=settings.config.getboolean("nocheck", False),
+    show_default=True,
+    help=f"Do not check for existing sources using {settings.BTC_TRANSCRIPTS_URL}/status.json",
+)
 username = click.option(
     "--username",
     type=str,
@@ -276,6 +283,7 @@ add_category = click.option(
 @add_loc
 # Options for configuring the transcription preprocess
 @cutoff_date
+@nocheck
 # Options for configuring the transcription postprocess
 @username
 @github
@@ -317,6 +325,7 @@ def transcribe(
     no_metadata: bool,
     needs_review: bool,
     cutoff_date: str,
+    nocheck: bool,
     correct: bool,
     summarize_llm: bool,
     llm_provider: str,
@@ -358,6 +367,7 @@ def transcribe(
         "include_metadata": not no_metadata,
         "needs_review": needs_review,
         "cutoff_date": cutoff_date,
+        "nocheck": nocheck,
         "correct": correct,
         "summarize_llm": summarize_llm,
         "llm_provider": llm_provider,
@@ -390,12 +400,7 @@ def get_queue():
 @click.argument("source", nargs=1)
 # Options for configuring the transcription preprocess
 @cutoff_date
-@click.option(
-    "--nocheck",
-    is_flag=True,
-    default=False,
-    help="Do not check for existing sources using btctranscripts.com/status.json",
-)
+@nocheck
 # Options for adding metadata
 @add_title
 @add_date
