@@ -117,7 +117,7 @@ summarize = click.option(
     is_flag=True,
     default=settings.config.getboolean("summarize", False),
     show_default=True,
-    help="Summarize the transcript [only available with deepgram]",
+    help="Summarize the transcript using the configured LLM provider.",
 )
 cutoff_date = click.option(
     "--cutoff-date",
@@ -213,14 +213,8 @@ verbose_logging = click.option(
 correct_transcript = click.option(
     "--correct",
     is_flag=True,
-    default=False,
+    default=settings.config.getboolean("correct", False),
     help="Correct the transcript using the configured LLM provider.",
-)
-summarize_llm = click.option(
-    "--summarize-llm",
-    is_flag=True,
-    default=False,
-    help="Generate a new summary using the configured LLM provider.",
 )
 llm_provider = click.option(
     "--llm-provider",
@@ -299,7 +293,6 @@ add_category = click.option(
 @verbose_logging
 @auto_start_server
 @correct_transcript
-@summarize_llm
 @llm_provider
 def transcribe(
     source: str,
@@ -327,7 +320,6 @@ def transcribe(
     cutoff_date: str,
     nocheck: bool,
     correct: bool,
-    summarize_llm: bool,
     llm_provider: str,
 ) -> None:
     """Transcribe the provided sources. Suported sources include: \n
@@ -369,7 +361,6 @@ def transcribe(
         "cutoff_date": cutoff_date,
         "nocheck": nocheck,
         "correct": correct,
-        "summarize_llm": summarize_llm,
         "llm_provider": llm_provider,
     }
     try:
